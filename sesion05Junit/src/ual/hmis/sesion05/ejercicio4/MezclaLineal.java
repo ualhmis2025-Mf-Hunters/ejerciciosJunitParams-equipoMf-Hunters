@@ -1,48 +1,40 @@
 package ual.hmis.sesion05.ejercicio4;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class MezclaLineal {
-
-    public static <T extends Comparable<T>> List<T> mezclarConjuntosOrdenados(List<T> listaA, List<T> listaB) {
-        // Validación de parámetros nulos
-        listaA = listaA == null ? Collections.emptyList() : listaA;
-        listaB = listaB == null ? Collections.emptyList() : listaB;
-        
+    
+    public MezclaLineal() {
+        // Constructor vacío necesario para cobertura
+    }
+    
+    public static <T extends Comparable<T>> List<T> mezclar(List<T> a, List<T> b) {
         List<T> resultado = new ArrayList<>();
         int i = 0, j = 0;
+        
+        a = a == null ? Collections.emptyList() : a;
+        b = b == null ? Collections.emptyList() : b;
 
-        while (i < listaA.size() && j < listaB.size()) {
-            T elementoA = listaA.get(i);
-            T elementoB = listaB.get(j);
-            int comparacion = elementoA.compareTo(elementoB);
-
-            if (comparacion < 0) {
-                resultado.add(elementoA);
+        while (i < a.size() && j < b.size()) {
+            T elemA = a.get(i);
+            T elemB = b.get(j);
+            
+            if (elemA.compareTo(elemB) < 0) {
+                resultado.add(elemA);
                 i++;
-            } else if (comparacion > 0) {
-                resultado.add(elementoB);
+            } else if (elemA.compareTo(elemB) > 0) {
+                resultado.add(elemB);
                 j++;
             } else {
-                resultado.add(elementoA);
+                resultado.add(elemA);
                 i++;
                 j++;
             }
         }
 
-        // Añadir elementos restantes
-        agregarRestantes(listaA, resultado, i);
-        agregarRestantes(listaB, resultado, j);
+        while (i < a.size()) resultado.add(a.get(i++));
+        while (j < b.size()) resultado.add(b.get(j++));
 
         return resultado;
-    }
-
-    private static <T> void agregarRestantes(List<T> lista, List<T> resultado, int indice) {
-        while (indice < lista.size()) {
-            resultado.add(lista.get(indice));
-            indice++;
-        }
     }
 }
