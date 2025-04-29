@@ -1,90 +1,91 @@
 package ual.hmis.sesion05.ejercicio4;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.converter.ConvertWith;
+import org.junit.jupiter.api.Test;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.*;
-import java.util.stream.Stream;
+public class Ejercicio4Test {
 
-class Ejercicio4Test {
-    private MezclaLineal mezclador = new MezclaLineal();
-
-    // Conversor mejorado para CSV
-    public static class StringToListConverter extends SimpleArgumentConverter {
-        @Override
-        protected Object convert(Object source, Class<?> targetType) {
-            String str = ((String) source).trim();
-            if (str.isEmpty()) return Collections.emptyList();
-            if (str.equalsIgnoreCase("null")) return null;
-            
-            // Manejo especial para elementos null en la lista
-            String[] parts = str.split("\\s*,\\s*");
-            List<String> result = new ArrayList<>();
-            for (String part : parts) {
-                result.add(part.equals("null") ? null : part);
-            }
-            return result;
-        }
-    }
-
-    // Pruebas con CSV
     @ParameterizedTest
-    @CsvFileSource(files = "mezcla_test_cases.csv", 
-                  numLinesToSkip = 1)
-    void testMezclarConCSV(
-        @ConvertWith(StringToListConverter.class) List<String> listaA,
-        @ConvertWith(StringToListConverter.class) List<String> listaB,
-        @ConvertWith(StringToListConverter.class) List<String> esperado) {
+    @CsvFileSource(resources = "/ual/hmis/sesion05/ejercicio4/mezcla_test_cases.csv", numLinesToSkip = 1)
+    void testMezclarConjuntosOrdenados(String listaAStr, String listaBStr, String resultadoEsperadoStr) {
+        List<Integer> listaA = parseList(listaAStr);
+        List<Integer> listaB = parseList(listaBStr);
+        List<Integer> esperado = parseList(resultadoEsperadoStr);
         
-        assertEquals(esperado, mezclador.mezclar(listaA, listaB));
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(listaA, listaB);
+        
+        assertEquals(esperado, resultado);
     }
 
-    // Pruebas programáticas para cobertura completa
-    static Stream<Arguments> proveedorDatos() {
-        return Stream.of(
-            // Casos null (4 ramas)
-            Arguments.of(null, null, Collections.emptyList()),
-            Arguments.of(null, Arrays.asList(1), Arrays.asList(1)),
-            Arguments.of(Arrays.asList(1), null, Arrays.asList(1)),
-            
-            // Casos vacíos (2 ramas)
-            Arguments.of(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()),
-            
-            // Casos con elementos null en listas (rama adicional)
-            Arguments.of(Arrays.asList(null, "a"), Arrays.asList("a", "b"), Arrays.asList(null, "a", "b")),
-            
-            // Todos los casos de comparación (3 ramas)
-            Arguments.of(Arrays.asList(1), Arrays.asList(2), Arrays.asList(1,2)), // <
-            Arguments.of(Arrays.asList(2), Arrays.asList(1), Arrays.asList(1,2)), // >
-            Arguments.of(Arrays.asList(1), Arrays.asList(1), Arrays.asList(1)),   // =
-            
-            // Casos extremos de duplicados
-            Arguments.of(Arrays.asList(1,1,1), Arrays.asList(1,1,2), Arrays.asList(1,2)),
-            Arguments.of(Arrays.asList("a","a"), Arrays.asList("a","b"), Arrays.asList("a","b")),
-            
-            // Caso que probablemente falta
-            Arguments.of(Arrays.asList(1), Arrays.asList(1,1,1), Arrays.asList(1))
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("proveedorDatos")
-    <T extends Comparable<T>> void testMezclarCompleto(List<T> listaA, List<T> listaB, List<T> esperado) {
-        assertEquals(esperado, mezclador.mezclar(listaA, listaB));
-    }
-
-    // Test adicional para la rama faltante
     @Test
-    void testElementosNullEnMedio() {
-        List<String> resultado = mezclador.mezclar(
-            Arrays.asList("a", null, "b"),
-            Arrays.asList(null, "c", "d")
-        );
-        assertEquals(Arrays.asList("a", null, "b", "c", "d"), resultado);
+    void testAmbosParametrosNulos() {
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(null, null);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void testPrimerParametroNulo() {
+        List<Integer> listaB = Arrays.asList(1, 2, 3);
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(null, listaB);
+        assertEquals(listaB, resultado);
+    }
+
+    @Test
+    void testSegundoParametroNulo() {
+        List<Integer> listaA = Arrays.asList(4, 5, 6);
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(listaA, null);
+        assertEquals(listaA, resultado);
+    }
+
+    @Test
+    void testAmbasListasVacias() {
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(
+            Collections.emptyList(), 
+            Collections.emptyList());
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void testElementosIguales() {
+        List<Integer> listaA = Arrays.asList(1, 1, 1);
+        List<Integer> listaB = Arrays.asList(1, 1, 1);
+        List<Integer> esperado = Arrays.asList(1, 1, 1, 1, 1, 1);
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(listaA, listaB);
+        assertEquals(esperado, resultado);
+    }
+
+    @Test
+    void testListaAMayorQueListaB() {
+        List<Integer> listaA = Arrays.asList(1, 3, 5, 7, 9);
+        List<Integer> listaB = Arrays.asList(2, 4);
+        List<Integer> esperado = Arrays.asList(1, 2, 3, 4, 5, 7, 9);
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(listaA, listaB);
+        assertEquals(esperado, resultado);
+    }
+
+    @Test
+    void testListaBMayorQueListaA() {
+        List<Integer> listaA = Arrays.asList(2, 4);
+        List<Integer> listaB = Arrays.asList(1, 3, 5, 7, 9);
+        List<Integer> esperado = Arrays.asList(1, 2, 3, 4, 5, 7, 9);
+        List<Integer> resultado = MezclaLineal.mezclarConjuntosOrdenados(listaA, listaB);
+        assertEquals(esperado, resultado);
+    }
+
+    private static List<Integer> parseList(String str) {
+        if (str == null || "null".equalsIgnoreCase(str.trim()) || str.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(str.split("\\s*,\\s*"))
+                   .map(String::trim)
+                   .filter(s -> !s.isEmpty())
+                   .map(Integer::parseInt)
+                   .collect(Collectors.toList());
     }
 }
