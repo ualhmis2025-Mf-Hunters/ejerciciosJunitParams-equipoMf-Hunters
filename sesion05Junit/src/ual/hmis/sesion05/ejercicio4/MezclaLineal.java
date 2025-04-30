@@ -1,6 +1,8 @@
 package ual.hmis.sesion05.ejercicio4;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MezclaLineal {
     
@@ -30,6 +32,7 @@ public class MezclaLineal {
                 j++;
             } else { // Elementos iguales
                 resultado.add(elem1);
+                resultado.add(elem2);
                 i++;
                 j++;
             }
