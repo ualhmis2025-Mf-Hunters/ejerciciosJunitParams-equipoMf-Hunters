@@ -4,36 +4,40 @@ import java.util.*;
 
 public class MezclaLineal {
     
+    // Constructor explícito para cobertura
     public MezclaLineal() {
-        // Constructor vacío necesario para cobertura
+        // Constructor vacío
     }
     
-    public static <T extends Comparable<T>> List<T> mezclar(List<T> a, List<T> b) {
+    public static <T extends Comparable<T>> List<T> mezclar(List<T> lista1, List<T> lista2) {
         List<T> resultado = new ArrayList<>();
         int i = 0, j = 0;
         
-        a = a == null ? Collections.emptyList() : a;
-        b = b == null ? Collections.emptyList() : b;
+        // Manejo de listas nulas
+        lista1 = lista1 == null ? Collections.emptyList() : lista1;
+        lista2 = lista2 == null ? Collections.emptyList() : lista2;
 
-        while (i < a.size() && j < b.size()) {
-            T elemA = a.get(i);
-            T elemB = b.get(j);
+        // Mezcla mientras ambas listas tengan elementos
+        while (i < lista1.size() && j < lista2.size()) {
+            T elem1 = lista1.get(i);
+            T elem2 = lista2.get(j);
             
-            if (elemA.compareTo(elemB) < 0) {
-                resultado.add(elemA);
+            if (elem1.compareTo(elem2) < 0) {
+                resultado.add(elem1);
                 i++;
-            } else if (elemA.compareTo(elemB) > 0) {
-                resultado.add(elemB);
+            } else if (elem1.compareTo(elem2) > 0) {
+                resultado.add(elem2);
                 j++;
-            } else {
-                resultado.add(elemA);
+            } else { // Elementos iguales
+                resultado.add(elem1);
                 i++;
                 j++;
             }
         }
 
-        while (i < a.size()) resultado.add(a.get(i++));
-        while (j < b.size()) resultado.add(b.get(j++));
+        // Añadir elementos restantes
+        while (i < lista1.size()) resultado.add(lista1.get(i++));
+        while (j < lista2.size()) resultado.add(lista2.get(j++));
 
         return resultado;
     }
