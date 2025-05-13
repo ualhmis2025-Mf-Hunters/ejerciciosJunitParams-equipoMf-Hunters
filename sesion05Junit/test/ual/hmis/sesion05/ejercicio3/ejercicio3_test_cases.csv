@@ -1,0 +1,11 @@
+input,expected
+null,password demasiado corto
+,password demasiado corto
+a,password demasiado corto
+abcd,password demasiado corto
+abcde,********
+abcdefgh,********
+abcdefghi,************
+abcdefghijkl,************
+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,password demasiado largo
+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,password demasiado largo
