@@ -51,13 +51,11 @@ public class ContadorDePalabrasTest {
                 writer.write("hola mundo\nadios mundo hola");
             }
 
-            // Redirigir System.out para capturar la salida
             ByteArrayOutputStream outContent = new ByteArrayOutputStream();
             PrintStream originalOut = System.out;
             System.setOut(new PrintStream(outContent));
 
             try {
-                // Ejecutar el main REAL
                 ContadorDePalabras.main(new String[]{tempFile.getAbsolutePath()});
 
                 String output = outContent.toString();
@@ -79,13 +77,11 @@ public class ContadorDePalabrasTest {
 
     @Test
     public void testMainConError() {
-        // Redirigir System.err para capturar errores
         ByteArrayOutputStream errContent = new ByteArrayOutputStream();
         PrintStream originalErr = System.err;
         System.setErr(new PrintStream(errContent));
 
         try {
-            // Ejecutar el main sin argumentos para provocar error
             ContadorDePalabras.main(new String[]{});
 
             String errorOutput = errContent.toString();
@@ -95,7 +91,6 @@ public class ContadorDePalabrasTest {
         }
     }
 
-    // Método auxiliar para crear archivos temporales con contenido específico
     private File crearArchivoTemporal(String contenido) throws IOException {
         File tempFile = File.createTempFile("temp_test", ".txt");
         try (FileWriter writer = new FileWriter(tempFile)) {
@@ -104,4 +99,16 @@ public class ContadorDePalabrasTest {
         tempFile.deleteOnExit();
         return tempFile;
     }
+
+
+    @Test
+    public void testContarPalabrasConSimbolosNoAlfabeticos() throws IOException {
+        File tempFile = crearArchivoTemporal("123 !!! ??? ###");
+        ContadorDePalabras contador = new ContadorDePalabras(tempFile.getAbsolutePath());
+        contador.contarPalabras();
+    
+        List<String> palabrasOrdenadas = contador.obtenerPalabrasOrdenadas();
+        assertTrue(palabrasOrdenadas.isEmpty());
+    }
+
 }
