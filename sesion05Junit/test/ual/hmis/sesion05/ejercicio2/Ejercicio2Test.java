@@ -1,15 +1,19 @@
 package ual.hmis.sesion05.ejercicio2;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import ual.hmis.sesion05.ejercicio2.Ejercicio2;
-
 class Ejercicio2Test {
 
+	/**
+	 * Prueba el m todo login con diferentes combinaciones de usuario y contrase a.
+	 * La primera columna es el usuario, la segunda columna es la contrase a, y la tercera columna indica
+	 * si el usuario se puede loguear o no.
+	 * @param username el nombre de usuario
+	 * @param password la contrase a
+	 * @param result indica si el usuario se puede loguear o no
+	 */
 	@CsvSource({
 		"user,pass,true",
 		"'',pass,false",
@@ -26,7 +30,7 @@ class Ejercicio2Test {
 		Ejercicio2 e2 = new Ejercicio2();
 		// Act
 		// Assert
-		assertEquals(Boolean.parseBoolean(result), e2.login(username, password));
+		assertEquals(Boolean.valueOf(result), e2.login(username, password));
 	}
 	
 }
