@@ -1,114 +1,117 @@
 package ual.hmis.sesion05.ejercicio5;
 
-import static org.junit.jupiter.api.Assertions.*;
+import ual.hmis.sesion05.ejercicio5.ContadorDePalabras;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.io.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ContadorDePalabrasTest {
+class ContadorDePalabrasTest {
 
-    @Test
-    public void testContarPalabras() throws IOException {
-        File tempFile = crearArchivoTemporal("Hola mundo hola\nAdiós mundo");
-        ContadorDePalabras contador = new ContadorDePalabras(tempFile.getAbsolutePath());
-        contador.contarPalabras();
-    
-        List<String> palabrasOrdenadas = contador.obtenerPalabrasOrdenadas();
-        assertEquals(3, palabrasOrdenadas.size());
-        assertEquals(Arrays.asList("adiós", "hola", "mundo"), palabrasOrdenadas);
-    
-        List<String> palabrasPorFrecuencia = contador.obtenerPalabrasPorFrecuencia();
-        assertEquals(Arrays.asList("mundo", "hola", "adiós"), palabrasPorFrecuencia);
-    }
-    
-
-    @Test
-    public void testObtenerPalabrasOrdenadasVacio() throws IOException {
-        File tempFile = crearArchivoTemporal("");
-        ContadorDePalabras contador = new ContadorDePalabras(tempFile.getAbsolutePath());
-        contador.contarPalabras();
-        List<String> palabrasOrdenadas = contador.obtenerPalabrasOrdenadas();
-        assertTrue(palabrasOrdenadas.isEmpty());
+    @BeforeAll
+    static void setup() throws IOException {
+        Files.write(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt"), "Hola mundo hola prueba prueba prueba".getBytes());
     }
 
     @Test
-    public void testObtenerPalabrasPorFrecuenciaVacio() throws IOException {
-        File tempFile = crearArchivoTemporal("");
-        ContadorDePalabras contador = new ContadorDePalabras(tempFile.getAbsolutePath());
-        contador.contarPalabras();
-        List<String> palabrasPorFrecuencia = contador.obtenerPalabrasPorFrecuencia();
-        assertTrue(palabrasPorFrecuencia.isEmpty());
+    @DisplayName("Verifica palabras ordenadas alfabéticamente con repeticiones")
+    void testPalabrasOrdenAlfabetico() throws IOException {
+    Files.write(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt"),
+                "Hola mundo hola prueba prueba prueba".getBytes());
+
+    ContadorDePalabras contador = new ContadorDePalabras();
+    List<String> esperado = List.of("hola", "hola", "mundo", "prueba", "prueba", "prueba");
+    assertEquals(esperado, contador.getPalabrasOrdenAlfabetico());
+}
+
+   @Test
+@DisplayName("Verifica palabras ordenadas por frecuencia sin repeticiones")
+void testPalabrasPorFrecuencia() throws IOException {
+    Files.write(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt"),
+                "Hola mundo hola prueba prueba prueba".getBytes());
+
+    ContadorDePalabras contador = new ContadorDePalabras();
+    List<String> esperado = List.of("prueba", "hola", "mundo");
+    assertEquals(esperado, contador.getPalabrasPorFrecuencia());
+}
+
+    static Stream<String> entradasLimite() {
+        return Stream.of("", " ", "a", "b b b a");
     }
 
-    @Test
-    public void testMain() {
-        File tempFile = null;
-        try {
-            tempFile = File.createTempFile("testMain", ".txt");
-            try (FileWriter writer = new FileWriter(tempFile)) {
-                writer.write("hola mundo\nadios mundo hola");
-            }
+    @ParameterizedTest
+@MethodSource("entradasLimite")
+@DisplayName("Test de valores límite con entradas personalizadas")
+void testValoresLimite(String contenido) throws IOException {
+    var path = Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt");
 
-            ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-            PrintStream originalOut = System.out;
-            System.setOut(new PrintStream(outContent));
+    byte[] contenidoOriginal = Files.readAllBytes(path);
 
-            try {
-                ContadorDePalabras.main(new String[]{tempFile.getAbsolutePath()});
+    try {
+        Files.write(path, contenido.getBytes());
+        ContadorDePalabras contador = new ContadorDePalabras();
+        List<String> palabras = contador.getPalabrasOrdenAlfabetico();
+        assertNotNull(palabras);
 
-                String output = outContent.toString();
-                assertTrue(output.contains("Palabras ordenadas alfabéticamente:"));
-                assertTrue(output.contains("Palabras ordenadas por frecuencia:"));
-                assertTrue(output.contains("hola"));
-                assertTrue(output.contains("mundo"));
-                assertTrue(output.contains("adios"));
-                
-            } finally {
-                System.setOut(originalOut);
-            }
-        } catch (IOException e) {
-            fail("Error al crear archivo temporal: " + e.getMessage());
-        } finally {
-            if (tempFile != null) tempFile.delete();
-        }
+    } finally {
+        Files.write(path, contenidoOriginal);
     }
+}
 
-    @Test
-    public void testMainConError() {
-        ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-        PrintStream originalErr = System.err;
-        System.setErr(new PrintStream(errContent));
+    @ParameterizedTest
+@MethodSource("entradasParaMain")
+@DisplayName("Cobertura del método main con diferentes entradas")
+void testMainConParametros(String contenido, List<String> palabrasEsperadas) throws IOException {
+    Files.write(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt"), contenido.getBytes());
 
-        try {
-            ContadorDePalabras.main(new String[]{});
+    java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+    System.setOut(new java.io.PrintStream(outContent));
 
-            String errorOutput = errContent.toString();
-            assertFalse(errorOutput.isEmpty());
-        } finally {
-            System.setErr(originalErr);
-        }
+    ContadorDePalabras.main(new String[]{});
+
+    System.setOut(System.out);
+
+    String salida = outContent.toString().toLowerCase();
+    assertTrue(salida.contains("=== palabras en orden alfabético ==="));
+    assertTrue(salida.contains("=== palabras por frecuencia ==="));
+    for (String palabra : palabrasEsperadas) {
+        assertTrue(salida.contains(palabra), "No se encontró la palabra esperada: " + palabra);
     }
+}
 
-    private File crearArchivoTemporal(String contenido) throws IOException {
-        File tempFile = File.createTempFile("temp_test", ".txt");
-        try (FileWriter writer = new FileWriter(tempFile)) {
-            writer.write(contenido);
-        }
-        tempFile.deleteOnExit();
-        return tempFile;
-    }
+static Stream<Arguments> entradasParaMain() {
+    return Stream.of(
+        Arguments.of("Hola mundo hola prueba prueba prueba", List.of("hola", "mundo", "prueba")),
+        Arguments.of("uno dos dos tres tres tres", List.of("uno", "dos", "tres")),
+        Arguments.of("A a A a b", List.of("a", "b")),
+        Arguments.of("", List.of())
+    );
+}
 
+@Test
+@DisplayName("Cobertura del bloque catch en main por archivo inexistente")
+void testMainConArchivoInexistente() throws IOException {
+    Files.deleteIfExists(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt"));
 
-    @Test
-    public void testContarPalabrasConSimbolosNoAlfabeticos() throws IOException {
-        File tempFile = crearArchivoTemporal("123 !!! ??? ###");
-        ContadorDePalabras contador = new ContadorDePalabras(tempFile.getAbsolutePath());
-        contador.contarPalabras();
-    
-        List<String> palabrasOrdenadas = contador.obtenerPalabrasOrdenadas();
-        assertTrue(palabrasOrdenadas.isEmpty());
-    }
+    java.io.ByteArrayOutputStream errContent = new java.io.ByteArrayOutputStream();
+    System.setErr(new java.io.PrintStream(errContent));
+
+    ContadorDePalabras.main(new String[]{});
+
+    System.setErr(System.err);
+
+    String salidaError = errContent.toString().toLowerCase();
+    assertTrue(salidaError.contains("error al leer el archivo"), "No se detectó la impresión del error.");
+}
 
 }

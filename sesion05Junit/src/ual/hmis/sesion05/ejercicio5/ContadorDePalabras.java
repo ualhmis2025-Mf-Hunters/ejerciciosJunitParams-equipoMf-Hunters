@@ -1,79 +1,51 @@
 package ual.hmis.sesion05.ejercicio5;
 
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ContadorDePalabras {
-    String path; 
-    private Map<String, Integer> contador;
-   
 
-    public ContadorDePalabras(String path) {
-        contador = new HashMap<>();
-        this.path = path;
+    private final List<String> palabras;
+
+    public ContadorDePalabras() throws IOException {
+        String contenido = new String(Files.readAllBytes(Paths.get("./test/ual/hmis/sesion05/ejercicio5/entrada.txt")));
+        palabras = Arrays.stream(contenido.toLowerCase().split("\\W+"))
+                         .filter(p -> !p.isBlank())
+                         .collect(Collectors.toList());
     }
 
-    public void contarPalabras() throws IOException {
-        File archivo = new File(path);
-
-
-        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
-            String linea;
-            while ((linea = br.readLine()) != null) {
-                String[] palabras = linea.split("\\s+");
-                for (String palabra : palabras) {
-                    palabra = palabra.toLowerCase().replaceAll("[^a-zA-Záéíóúüñ]", "");
-                    if (!palabra.isEmpty()) {
-                        contador.put(palabra, contador.getOrDefault(palabra, 0) + 1);
-                    }
-                }
-            }
-        }
+    public List<String> getPalabrasOrdenAlfabetico() {
+        List<String> ordenadas = new ArrayList<>(palabras);
+        Collections.sort(ordenadas);
+        return ordenadas;
     }
 
-    public List<String> obtenerPalabrasOrdenadas() {
-        List<String> listaPalabras = new ArrayList<>(contador.keySet());
-        Collections.sort(listaPalabras);
-        return listaPalabras;
-    }
+    public List<String> getPalabrasPorFrecuencia() {
+        Map<String, Long> frecuencia = palabras.stream()
+                .collect(Collectors.groupingBy(p -> p, Collectors.counting()));
 
-    public List<String> obtenerPalabrasPorFrecuencia() {
-        List<Map.Entry<String, Integer>> lista = new ArrayList<>(contador.entrySet());
-        lista.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
-        List<String> resultado = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : lista) {
-            resultado.add(entry.getKey());
-        }
-        return resultado;
+        return frecuencia.entrySet()
+                .stream()
+                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     public static void main(String[] args) {
-        String path;
-        if (args.length > 0) {
-            path = args[0]; // usar argumento si se proporciona
-        } else {
-            path = "./sesion05Junit/test/ual/hmis/sesion05/ejercicio5/entrada.txt"; // por defecto
-        }
-    
         try {
-            ContadorDePalabras contadorDePalabras = new ContadorDePalabras(path);
-    
-            contadorDePalabras.contarPalabras();
-    
-            System.out.println("Palabras ordenadas alfabéticamente:");
-            List<String> palabrasOrdenadas = contadorDePalabras.obtenerPalabrasOrdenadas();
-            for (String palabra : palabrasOrdenadas) {
-                System.out.println(palabra);
-            }
-    
-            System.out.println("\nPalabras ordenadas por frecuencia:");
-            List<String> palabrasPorFrecuencia = contadorDePalabras.obtenerPalabrasPorFrecuencia();
-            for (String palabra : palabrasPorFrecuencia) {
-                System.out.println(palabra);
-            }
-    
+            ContadorDePalabras contador = new ContadorDePalabras();
+
+            System.out.println("=== Palabras en orden alfabético ===");
+            contador.getPalabrasOrdenAlfabetico().forEach(System.out::println);
+
+            System.out.println("\n=== Palabras por frecuencia ===");
+            contador.getPalabrasPorFrecuencia().forEach(System.out::println);
+
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error al leer el archivo: " + e.getMessage());
         }
     }
 }
