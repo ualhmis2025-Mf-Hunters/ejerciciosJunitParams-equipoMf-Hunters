@@ -4,8 +4,23 @@ import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+/**
+ * Clase de prueba para la clase ConversionTemperatura.
+ * 
+ * Esta clase contiene pruebas unitarias para el método convertTemperature
+ * de la clase ConversionTemperatura. Se utilizan diferentes casos de prueba
+ * para verificar que las conversiones de temperatura se realizan correctamente.
+ */
 public class Ejercicio6Test {
 
+    /**
+     * Prueba el método convertTemperature de la clase ConversionTemperatura.
+     * 
+     * @param temperature la temperatura a convertir
+     * @param fromUnit la unidad de origen
+     * @param toUnit la unidad de destino
+     * @param expected el resultado esperado
+     */
     @ParameterizedTest(name = "{index} => Con entrada ({0}) sale {1}")
     @CsvSource({
         "0, Celsius, Fahrenheit, 32.0",

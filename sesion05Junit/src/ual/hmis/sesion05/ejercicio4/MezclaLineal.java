@@ -4,13 +4,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Clase que mezcla dos listas ordenadas en una sola lista ordenada.
+ * 
+ * Esta clase contiene un método estático para mezclar dos listas de elementos
+ * que implementan la interfaz Comparable. El resultado es una nueva lista
+ * ordenada que contiene todos los elementos de ambas listas.
+ */
 public class MezclaLineal {
     
-    // Constructor explícito para cobertura
+    /**
+     * Constructor de la clase MezclaLineal.
+     * 
+     * Este constructor no realiza ninguna acción, pero se incluye para
+     * permitir la creación de instancias de la clase.
+     */
     public MezclaLineal() {
         // Constructor vacío
     }
     
+    /**
+     * Mezcla dos listas ordenadas en una sola lista ordenada.
+     *
+     * @param lista1 La primera lista a mezclar.
+     * @param lista2 La segunda lista a mezclar.
+     * @param <T> El tipo de los elementos en las listas, que debe implementar la interfaz Comparable.
+     * @return La lista resultante de la mezcla.
+     */
     public static <T extends Comparable<T>> List<T> mezclar(List<T> lista1, List<T> lista2) {
         List<T> resultado = new ArrayList<>();
         int i = 0, j = 0;

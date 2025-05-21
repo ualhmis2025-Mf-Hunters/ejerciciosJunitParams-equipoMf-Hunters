@@ -1,19 +1,35 @@
 package ual.hmis.sesion05.ejercicio4;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.*;
-import org.junit.jupiter.params.provider.*;
-import java.util.*;
-import java.util.stream.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class MezclaLinealTest {
 
+    /**
+     * Testea que el constructor de la clase no lance excepciones
+     */
     @Test
     void testConstructor() {
         assertDoesNotThrow(() -> new MezclaLineal());
     }
 
+    /**
+     * Testea que el metodo mezclar() de la clase MezclaLineal
+     * devuelva la lista esperada al mezclar las dos listas dadas.
+     * El metodo prueba diferentes combinaciones de listas nulas,
+     * vacias y con elementos duplicados.
+     */
     @ParameterizedTest(name = "Test {index}: mezclar({0}, {1}) = {2}")
     @MethodSource("proveedorDatosMezcla")
     void testMezclaParametrizado(List<Integer> lista1, List<Integer> lista2, List<Integer> esperado) {
@@ -21,6 +37,22 @@ class MezclaLinealTest {
         assertEquals(esperado, resultado);
     }
 
+    /**
+     * Proveedor de datos para el test parametrizado testMezclaParametrizado.
+     * El proveedor devuelve un stream de argumentos que se corresponden con:
+     * - lista1: la primera lista a mezclar
+     * - lista2: la segunda lista a mezclar
+     * - esperado: la lista esperada al mezclar las dos listas
+     * 
+     * El proveedor incluye casos con:
+     * - listas nulas
+     * - listas vacías
+     * - listas sin elementos duplicados
+     * - listas con elementos duplicados
+     * - listas con todos elementos iguales
+     * - listas de diferente tamaño
+     * - listas con un solo elemento en ambas listas
+     */
     private static Stream<Arguments> proveedorDatosMezcla() {
         return Stream.of(
             // Casos con listas nulas
@@ -54,6 +86,11 @@ class MezclaLinealTest {
         );
     }
 
+    /**
+     * Testea el método mezclar() de la clase MezclaLineal con listas de Strings.
+     * Verifica que mezclar las listas ["a", "c", "e"] y ["b", "d", "f"]
+     * produce la lista ordenada esperada ["a", "b", "c", "d", "e", "f"].
+     */
     @Test
     void testMezclaConStrings() {
         List<String> lista1 = Arrays.asList("a", "c", "e");
@@ -63,6 +100,12 @@ class MezclaLinealTest {
         assertEquals(esperado, MezclaLineal.mezclar(lista1, lista2));
     }
 
+    /**
+     * Testea el método mezclar() de la clase MezclaLineal con listas grandes.
+     * Verifica que al mezclar una lista de números pares del 0 al 999 y
+     * una lista de números impares del 0 al 999, se obtiene la lista ordenada
+     * del 0 al 999.
+     */
     @Test
     void testMezclaConListasGrandes() {
         List<Integer> lista1 = IntStream.range(0, 1000)
