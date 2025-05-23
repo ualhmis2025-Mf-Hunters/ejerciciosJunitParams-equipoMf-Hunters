@@ -5,6 +5,9 @@ pipeline {
     // Nombre dado a la instalación de Maven en "Tools configuration"
     maven "maven default"
   }
+  environment {
+    MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED'
+  }
 
   stages {
     stage('Git fetch') {
