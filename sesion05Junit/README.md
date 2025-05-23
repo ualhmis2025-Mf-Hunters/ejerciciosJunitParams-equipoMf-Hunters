@@ -6,5 +6,4 @@ Es recomendable actualizar Jenkins a la última versión para evitar bugs y vuln
 ```bash
 sudo apt-get update -y
 sudo apt-get upgrade -y
-``` 
-
+```
