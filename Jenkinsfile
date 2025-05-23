@@ -7,7 +7,6 @@ pipeline {
   }
   environment {
     MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED'
-    SONAR_TOKEN = '91976b0d59aaa32f0fbc3287a2a7ae298cbf8f22'
   }
 
   stages {
@@ -70,7 +69,7 @@ pipeline {
 	    stage('SonarQube analysis') {
     	steps {
       	withSonarQubeEnv(credentialsId: 'sonar_server', installationName: 'servidor_sonarqube') { 
-        sh "mvn -f sesion05Junit/pom.xml sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.host.url=https://sonarqubeanm020.westeurope.cloudapp.azure.com"
+        sh 'mvn -f sesion05Junit/pom.xml sonar:sonar' 
       }
     }
   }
