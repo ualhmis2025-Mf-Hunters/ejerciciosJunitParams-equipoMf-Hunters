@@ -135,7 +135,7 @@ Crea un nuevo proyecto y dale el nombre y selecciona tipo pipeline. El nombre de
 Indica la URL del proyecto en Github. Utiliza aquí la URL de tu proyecto de la práctica 7.
 
 
-En la sección Pipeline, disponemos de un cuadro de texto en el que añadir la descripción de nuestro pipeline utilizando la sintaxis declarativa que Jenkins proporciona. Vamos a ver cómo hacerlo. Este es el pipeline entero, y cambiarlo a Pipeline script from SCM para Jenkisfile de GitHub:
+En la sección Pipeline, disponemos de un cuadro de texto en el que añadir la descripción de nuestro pipeline utilizando la sintaxis declarativa que Jenkins proporciona. Tras ponerlo debemos arreglar cosas como el nombre de la versión que debe ser el que estemos utilizando, en este caso **maven default**. O el link del repositorio: **https://github.com/ualhmis2025-Mf-Hunters/ejerciciosJunitParams-equipoMf-Hunters.git** y su rama que en nuestro caso es **master**. Debemos de cambiar tambien la zona donde se encuentra el POM.xml, que en nuestro caso es **sesion05Junit/pom.xml**.
 
 ```
 pipeline {
@@ -143,66 +143,159 @@ pipeline {
 
   tools {
     // Nombre dado a la instalación de Maven en "Tools configuration"
-    maven "maven default"
+    maven "Default Maven"
   }
 
   stages {
     stage('Git fetch') {
       steps {
         // Get some code from a GitHub repository
-        git branch: 'master', url: 'https://github.com/ualhmis2025-Mf-Hunters/ejerciciosJunitParams-equipoMf-Hunters.git'
+        git branch: 'main', url: 'https://github.com/ualhmis/MavenEjercicios'
       }
     }
     stage('Compile, Test, Package') {
       steps {
         // When necessary, use '-f path-to/pom.xml' to give the path to pom.xml
         // Run goal 'package'. It includes compile, test and package.
-        sh "mvn  -f sesion05Junit/pom.xml clean package"
+        sh "mvn  -f sesion07Maven/pom.xml clean package"
       }
-      
       post {
         // Record the test results and archive the jar file.
         success {
-          junit '/target/surefire-reports/TEST-*.xml'
-          archiveArtifacts '/target/*.jar'
-          jacoco( 
-            execPattern: '/target/jacoco.exec',
-            classPattern: '/target/classes',
-            sourcePattern: '/src/',
-            exclusionPattern: '/test/'
-          )
-          publishCoverage adapters: [jacocoAdapter('/target/site/jacoco/jacoco.xml')] 
-        }
-      }
-    }
-      stage ('Analysis') {
-    steps {
-      // Warnings next generation plugin required
-      sh "mvn -f sesion05Junit/pom.xml checkstyle:checkstyle site -DgenerateReports=false"
-      sh "mvn -f sesion05Junit/pom.xml site"
-    }
-    post {
-      success {
-        dependencyCheckPublisher pattern: '/target/site/es/dependency-check-report.xml'
-        recordIssues enabledForFailure: true, tool: checkStyle()
-        recordIssues enabledForFailure: true, tool: pmdParser()
-        recordIssues enabledForFailure: true, tool: cpd()
-        recordIssues enabledForFailure: true, tool: findBugs()
-        recordIssues enabledForFailure: true, tool: spotBugs()
-      }
-    }
-  }
-      stage ('Documentation') {
-      steps {
-        sh "mvn -f sesion05Junit/pom.xml javadoc:javadoc javadoc:aggregate"
-      }
-      post{
-        success {
-          step $class: 'JavadocArchiver', javadocDir: 'sesion05Junit/target/reports/apidocs', keepAll: false
-          publishHTML(target: [reportName: 'Maven Site', reportDir: 'sesion05Junit/target/reports', reportFiles: 'index.html', keepAll: false])
+          junit '**/target/surefire-reports/TEST-*.xml'
+          archiveArtifacts '**/target/*.jar'
         }
       }
     }
   }
 }
 ```
+
+Así se debería de ver el resultado actual después de haber puesto el script y haber hecho build now del proyecto:
+
+![FOTO25](/sesion05Junit/imgREADME/FOTO25.png)
+
+Para visualizar informe de cobertura en el pipeline, añade las dos siguientes linea al bloque post:
+´´´
+  success {
+    junit '**/target/surefire-reports/TEST-*.xml'
+    archiveArtifacts '**/target/*.jar'
+    jacoco(
+      execPattern: '**/target/jacoco.exec',
+      classPattern: '**/target/classes',
+      sourcePattern: '**/src/',
+      exclusionPattern: '**/test/'
+    )
+    publishCoverage adapters: [jacocoAdapter('**/target/site/jacoco/jacoco.xml')]
+  }
+´´´
+
+Y el resultado debe ser que añade el informe *Coverage Trend* y *Coverage report* :
+
+![FOTO26](/sesion05Junit/imgREADME/FOTO26.png)
+
+Para ejecutar y visualizar el análisis de Checkstyle, añade un nuevo stage al pipeline, en el que hay que arreglar tambien donde está el archivo pom.xml de manera que la ruta en este caso debería de ser **sesion05Junit/pom.xml**:
+```
+  stage ('Analysis') {
+    steps {
+	  // Warnings next generation plugin required
+	  sh "mvn -f sesion07Maven/pom.xml checkstyle:checkstyle site -DgenerateReports=false"
+    }
+    post {
+      success {
+        recordIssues enabledForFailure: true, tool: checkStyle()
+      }
+    }
+  }
+```
+
+El resultado con la implementación de CheckStyle deber ser el siguiente:
+
+![FOTO27](/sesion05Junit/imgREADME/FOTO27.png)
+
+Ahora debemos de añadir unos cuantos informes extras que son los siguientes:
+1. PMD: añade el goal adecuado en la ejecución de maven y añade la publicación del informe:
+´´´
+recordIssues enabledForFailure: true, tool: pmdParser()
+´´´
+
+2. CPD: añade la publicación del informe:
+´´´
+recordIssues enabledForFailure: true, tool: cpd()
+´´´
+
+3. FingBugs: repite el proceso.
+
+4. SpotBugs: repite el proceso.
+
+El resultado final debe ser tal que así.
+´´´
+    stage ('Analysis') {
+      steps {
+	    // Warnings next generation plugin required
+	    sh "mvn -f sesion07Maven/pom.xml checkstyle: checkstyle site -DgenerateReports=false"
+      sh "mvn -f sesion07Maven/pom.xml site"
+      }
+      post {
+        success {
+          dependencyCheckPublisher pattern: '**/target/site/es/dependency-check-report.xml'
+          recordIssues enabledForFailure: true, tool: checkStyle()
+          recordIssues enabledForFailure: true, tool: pmdParser()
+          recordIssues enabledForFailure: true, tool: cpd()
+          recordIssues enabledForFailure: true, tool: findBugs()
+          recordIssues enabledForFailure: true, tool: spotBugs()
+        }
+      }
+    }
+´´´
+
+El resultado debe verse con todas estas implementaciones:
+
+![FOTO28](/sesion05Junit/imgREADME/FOTO28.png)
+
+Dependency Check de OWASP (Open Web Application Security Project) es una herramienta que permite identificar las dependencias de nuestro proyecto y comprobar si hay alguna de ellas que tiene vulnerabilidades conocidas. En la práctica anterior configuramos el plugin dependency-check-maven en el bloque <reporting> del pom.xml, por lo que este plugin se ejecuta cuando llamamos al goal site. Puesto que ya hemos ejecutado site en la fase anterior, no es necesario crear una nueva fase (stage) para generar el informe de Dependency-check, únicamente será necesario publicarlo en el pipeline.
+
+Modifica el archivo pom.xml en tu proyecto y añade la siguiente línea para que genere el informe también en formato XML, que es el formato que lee el plugin:
+
+´´´
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>5.3.2</version>
+        <configuration>
+          <skipTestScope>false</skipTestScope>
+          <formats>
+            <format>HTML</format>
+            <format>XML</format>
+          </formats>
+        </configuration>
+        ...
+      </plugin>
+´´´
+
+Tras volver a construir el proyecto, aparecerá una nueva gráfica de Dependency Check en el proyecto. Si no tienes problemas de seguridad en las dependencias, esta gráfica estará en blanco. El enlace al informe de dependencias no aparece en la página principal del proyecto, en el menú de enlaces como el resto, sino que tienes que hacer clic en el número del último build, y en la nueva página ya aparece el enlace.
+
+
+La siguiente fase recomendada en el pipeline, de las lista de fases genéricas, es la de generar la documentación
+
+Es necesario instalar previamente el plugin HTML Publisher de Jenkins.
+
+Añade esta fase al pipeline:
+
+´´´
+    stage ('Documentation') {
+      steps {
+	    sh "mvn -f sesion07Maven/pom.xml javadoc:javadoc javadoc:aggregate"
+      }
+      post{
+        success {
+          step $class: 'JavadocArchiver', javadocDir: 'sesion07Maven/target/site/apidocs', keepAll: false
+          publishHTML(target: [reportName: 'Maven Site', reportDir: 'sesion07Maven/target/site', reportFiles: 'index.html', keepAll: false])
+        }
+      }
+    }
+´´´
+
+La descripción del pipeline puede guardarse en un archivo llamado Jenkinsfile y guardarse en el repositorio como otro archivo de código más. Si haces esto, al configurar el proyecto en Jenkins debes elegir la opción Pipeline script from SCM en la sección de definición del pipeline. A continuación, debes proporcionar la URL del repositorio donde se encuentra el archivo Jenkinsfile.
+
+![FOTO29](/sesion05Junit/imgREADME/FOTO29.png)
