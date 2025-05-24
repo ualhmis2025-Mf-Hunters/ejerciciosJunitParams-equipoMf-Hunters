@@ -176,7 +176,7 @@ Así se debería de ver el resultado actual después de haber puesto el script y
 ![FOTO25](/sesion05Junit/imgREADME/FOTO25.png)
 
 Para visualizar informe de cobertura en el pipeline, añade las dos siguientes linea al bloque post:
-´´´
+```
   success {
     junit '**/target/surefire-reports/TEST-*.xml'
     archiveArtifacts '**/target/*.jar'
@@ -188,7 +188,7 @@ Para visualizar informe de cobertura en el pipeline, añade las dos siguientes l
     )
     publishCoverage adapters: [jacocoAdapter('**/target/site/jacoco/jacoco.xml')]
   }
-´´´
+```
 
 Y el resultado debe ser que añade el informe *Coverage Trend* y *Coverage report* :
 
@@ -215,21 +215,21 @@ El resultado con la implementación de CheckStyle deber ser el siguiente:
 
 Ahora debemos de añadir unos cuantos informes extras que son los siguientes:
 1. PMD: añade el goal adecuado en la ejecución de maven y añade la publicación del informe:
-´´´
+```
 recordIssues enabledForFailure: true, tool: pmdParser()
-´´´
+```
 
 2. CPD: añade la publicación del informe:
-´´´
+```
 recordIssues enabledForFailure: true, tool: cpd()
-´´´
+```
 
 3. FingBugs: repite el proceso.
 
 4. SpotBugs: repite el proceso.
 
 El resultado final debe ser tal que así.
-´´´
+```
     stage ('Analysis') {
       steps {
 	    // Warnings next generation plugin required
@@ -247,7 +247,7 @@ El resultado final debe ser tal que así.
         }
       }
     }
-´´´
+```
 
 El resultado debe verse con todas estas implementaciones:
 
@@ -257,7 +257,7 @@ Dependency Check de OWASP (Open Web Application Security Project) es una herrami
 
 Modifica el archivo pom.xml en tu proyecto y añade la siguiente línea para que genere el informe también en formato XML, que es el formato que lee el plugin:
 
-´´´
+```
       <plugin>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
@@ -271,7 +271,7 @@ Modifica el archivo pom.xml en tu proyecto y añade la siguiente línea para que
         </configuration>
         ...
       </plugin>
-´´´
+```
 
 Tras volver a construir el proyecto, aparecerá una nueva gráfica de Dependency Check en el proyecto. Si no tienes problemas de seguridad en las dependencias, esta gráfica estará en blanco. El enlace al informe de dependencias no aparece en la página principal del proyecto, en el menú de enlaces como el resto, sino que tienes que hacer clic en el número del último build, y en la nueva página ya aparece el enlace.
 
@@ -282,7 +282,7 @@ Es necesario instalar previamente el plugin HTML Publisher de Jenkins.
 
 Añade esta fase al pipeline:
 
-´´´
+```
     stage ('Documentation') {
       steps {
 	    sh "mvn -f sesion07Maven/pom.xml javadoc:javadoc javadoc:aggregate"
@@ -294,8 +294,121 @@ Añade esta fase al pipeline:
         }
       }
     }
-´´´
+```
 
 La descripción del pipeline puede guardarse en un archivo llamado Jenkinsfile y guardarse en el repositorio como otro archivo de código más. Si haces esto, al configurar el proyecto en Jenkins debes elegir la opción Pipeline script from SCM en la sección de definición del pipeline. A continuación, debes proporcionar la URL del repositorio donde se encuentra el archivo Jenkinsfile.
 
 ![FOTO29](/sesion05Junit/imgREADME/FOTO29.png)
+
+
+<div style="
+    height: 10px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    margin: 50px 0;">
+</div><div style="
+    height: 10px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    margin: 50px 0;">
+</div><div style="
+    height: 10px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    margin: 50px 0;">
+</div>
+
+# SonarQube con Jenkins
+
+## Configuración de la integración  entre Jenkins y SonarQube
+
+El primer paso es crear un token en SonarQube para el usuario. Para ello, en SonarQube, creamos un nuevo usuario: userjenkins. Para administrar usuarios y grupos, una vez logueado como admin elige Administration > Security. Añade el usuario userjenkins, que de forma predeterminada se añade al grupo sonar-users.
+
+![FOTO30](/sesion05Junit/imgREADME/FOTO30.JPG)
+
+Accede con usuario userjenkins en SonarQube y en su perfil, crea un token y guardalo para usarlo después.
+
+En Jenkins, instalamos el plugin SonarQube Scanner.
+
+![FOTO31](/sesion05Junit/imgREADME/FOTO31.JPG)
+
+Una vez instalado el plugin de SonarQube, lo configuramos: Administrar Jenkins > Configurar el Sistema, y bajamos hasta la sección SonarQube Servers. Marca la opción Environment variables Enable injection of SonarQube server configuration as build environment variables. Añadimos un nuevo SonarQube, damos un nombre al servidor, la URL de SonarQube, y añadimos la credencial de acceso al servidor mediante una nueva credencial de tipo Secret Text usando el token de autenticación. Dale el ID a la credencial: sonar_server
+
+![FOTO32](/sesion05Junit/imgREADME/FOTO32.JPG)
+
+![FOTO34](/sesion05Junit/imgREADME/FOTO34.JPG)
+
+![FOTO33](/sesion05Junit/imgREADME/FOTO33.JPG)
+
+A continuación debemos añadir la instalación de SonarQube Scanner en Administrar Jenkins > Global Tool configuration. Seleccionamos la última version que se instale automáticamente.
+
+![FOTO35](/sesion05Junit/imgREADME/FOTO35.JPG)
+
+
+## Añadir SonarQube a un proyecto Jenkins
+
+### Tipo Maven 
+
+En el archivo pom.xml tenemos que incorporar el plugin de SonarQube en el bloque build.
+
+```
+<build>
+...
+    <plugin>
+      <groupId>org.sonarsource.scanner.maven</groupId>
+      <artifactId>sonar-maven-plugin</artifactId>
+      <version>3.9.0.2155</version>
+    </plugin>
+...
+</build>
+```
+
+En la configuración del proyecto Jenkins, en la sección Entorno de Ejecución, marcamos la opción: Prepare SonarQube Scanner environment, y seleccionamos el token en el desplegable.
+
+![FOTO36](/sesion05Junit/imgREADME/FOTO36.JPG)
+
+En los Goals de Maven, añadimos sonar:sonar al final de lista de goals.
+
+![FOTO37](/sesion05Junit/imgREADME/FOTO37.JPG)
+
+
+Tras la ejecución, aparecerán los resultados de SonarQube. En el proyecto se mostrará una etiqueta con el valor del Quality Gate encontrado en el análisis. Haciendo clic en el enlace nos lleva al resultado detallado del análisis.
+
+**AQUI ES EL ERROR QUE NOS DA ............................................................................................................................................................................................**
+
+### Tipo Pipeline
+
+Añade una nueva fase al Pipeline:
+
+```
+  stage('SonarQube analysis') {
+    steps {
+      withSonarQubeEnv(credentialsId: 'sonar_server', installationName: 'servidor_sonarqube') {
+        sh 'mvn sonar:sonar'
+      }
+    }
+  }
+```
+
+Alternativamente, se puede añadir a continuación una nueva fase que establezca el pipeline a UNSTABLE si falla el Quality Gate.
+
+```
+  stage("Quality Gate") {
+    steps {
+      timeout(time: 1, unit: 'HOURS') {
+      // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+      // true = set pipeline to UNSTABLE, false = don't
+        waitForQualityGate abortPipeline: true
+      }
+    }
+  }
+```
+
+Esto sería el resultado
+
+![FOTO38](/sesion05Junit/imgREADME/FOTO38.JPG)
+
+## Análisis SonarQube desde Eclipse
+
+Si deseas ejecutar el análisis de SonarQube desde Eclipse, debes llamar a la construcción maven el goal sonar:sonar y los parámetros siguientes:
+
+```
+sonar:sonar -Dsonar.host.url=http://sonarqube_server_url:9000  -Dsonar.login=user-token
+```
