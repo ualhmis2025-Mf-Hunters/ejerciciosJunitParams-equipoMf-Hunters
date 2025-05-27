@@ -9,6 +9,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<sonar.host.url>https://sonarqubeanm020.westeurope.cloudapp.azure.com</sonar.host.url>
 	</properties>
 
 	<build>
