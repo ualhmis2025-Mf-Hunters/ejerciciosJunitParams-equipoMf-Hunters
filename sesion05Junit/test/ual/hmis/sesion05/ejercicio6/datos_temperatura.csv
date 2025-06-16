@@ -1,0 +1,10 @@
+temperature,fromUnit,toUnit,expected
+0,Celsius,Fahrenheit,32.0
+0,Celsius,Kelvin,273.15
+0,Celsius,Celsius,NaN
+32,Fahrenheit,Celsius,0.0
+32,Fahrenheit,Kelvin,273.15
+32,Fahrenheit,Fahrenheit,NaN
+273.15,Kelvin,Celsius,0.0
+273.15,Kelvin,Fahrenheit,32.0
+273.15,Kelvin,Kelvin,NaN
